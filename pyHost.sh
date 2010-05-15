@@ -234,7 +234,7 @@ mkdir $HOME/.virtualenvs
 
 # Append to .bashrc
 echo -e "\
-export WORKON_HOME=$HOME/.virtualenvs\n\
-source $HOME/opt/virtualenvwrapper.sh\n\
+export WORKON_HOME=\$HOME/.virtualenvs\n\
+source \$HOME/opt/virtualenvwrapper.sh\n\
 " >> ~/.bashrc
 source ~/.bashrc
