@@ -1,3 +1,17 @@
+# =================================================
+# = Created by Tommaso Lanza, under the influence
+# = of the guide published by Andrew Watts at:
+# = http://andrew.io/weblog/2010/02/installing-python-2-6-virtualenv-and-virtualenvwrapper-on-dreamhost/
+# =
+# = This script automates the installation, download and
+# = compiling of Python, Mercurial, VirtualEnv in the home folder.
+# = It includes a number of dependencies needed by some Python modules.
+# = It has been tested on Dreamhost on a shared server running Debian.
+# = It should work with other hosts, but it hasn't been tested.
+# = 
+# = tmslnz, May 2010
+# =================================================
+
 # Update your .bashrc with the following before running the script:
 #   
 #   export PATH=\
@@ -22,13 +36,16 @@
 # Directory mangling
 ####################
 cd ~
-# Make a backup copy of the current ~/opt folder
+# Make a backup copy of the current ~/opt folder by renaming it.
 mv --interactive opt opt.backup
 mkdir opt downloads
 mkdir --parents --mode=775 --verbose opt/local/lib
 
 #####################
 # Refresh .bashrc
+#
+# Let's make sure the variables are 
+# updated in case you didn't log out.
 #####################
 source ~/.bashrc
 
@@ -166,7 +183,7 @@ ln -s $HOME/opt/local/lib/libtk8.5.so $HOME/opt/local/lib/libtk.so
 #make install
 #cd ../..
 #
-## Oracle Berkeley DB 4.8.x fro Python 2.7.x
+## Oracle Berkeley DB 4.8.x for Python 2.7.x
 #cd db-4.8.30/build_unix
 #../dist/configure \
 #--prefix=$HOME/opt/db-4.8.30 \
@@ -176,7 +193,7 @@ ln -s $HOME/opt/local/lib/libtk8.5.so $HOME/opt/local/lib/libtk.so
 #make install
 #cd ../..
 
-# Oracle Berkeley DB 4.7.x fro Python 2.6.x
+# Oracle Berkeley DB 4.7.x for Python 2.6.x
 cd db-4.7.25/build_unix
 ../dist/configure \
 --prefix=$HOME/opt/db-4.7.25 \
