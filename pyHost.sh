@@ -1,3 +1,4 @@
+#!/bin/bash
 # =================================================
 # = Created by Tommaso Lanza, under the influence
 # = of the guide published by Andrew Watts at:
@@ -95,6 +96,9 @@ tar -xzf virtualenv-1.4.8.tar.gz
 wget http://www.doughellmann.com/downloads/virtualenvwrapper-2.1.1.tar.gz
 rm -rf virtualenvwrapper-2.1.1
 tar -xzf virtualenvwrapper-2.1.1.tar.gz
+wget http://www.djangoproject.com/download/1.1.1/tarball/
+rm -rf Django-1.1.1
+tar -xzf Django-1.1.1.tar.gz
 
 # ##################################################################
 # Set temporary session paths for and variables for the GCC compiler
@@ -244,5 +248,9 @@ cd virtualenvwrapper-2.1.1
 python setup.py install
 cp virtualenvwrapper.sh $HOME/opt/
 mkdir $HOME/.virtualenvs
+cd ..
+
+cd Django-1.1.1
+python setup.py install
 
 cd ~
