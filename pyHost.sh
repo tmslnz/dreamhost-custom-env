@@ -2,16 +2,10 @@
 # Directory mangling
 ####################
 cd ~
-rm -rf downloads
-rm -rf opt
+# Make a backup copy of the current ~/opt folder
+mv --interactive opt opt.backup
 mkdir opt downloads
-cd opt
-mkdir local
-chmod 775 ./local
-cd local
-mkdir lib
-chmod 775 ./lib
-cd ~
+mkdir --parents --mode=775 --verbose opt/local/lib
 
 #####################
 # Refresh .bashrc
@@ -24,32 +18,46 @@ source ~/.bashrc
 #####################
 cd downloads
 wget http://www.bzip.org/1.0.5/bzip2-1.0.5.tar.gz
+rm -rf bzip2-1.0.5
 tar -xzf bzip2-1.0.5.tar.gz
 wget ftp://ftp.gnu.org/gnu/readline/readline-6.1.tar.gz
+rm -rf readline-6.1
 tar -xzf readline-6.1.tar.gz
 wget http://prdownloads.sourceforge.net/tcl/tcl8.5.8-src.tar.gz
+rm -rf tcl8.5.8-src
 tar -xzf tcl8.5.8-src.tar.gz
 wget http://prdownloads.sourceforge.net/tcl/tk8.5.8-src.tar.gz
+rm -rf tk8.5.8-src
 tar -xzf tk8.5.8-src.tar.gz
 wget http://pypi.python.org/packages/source/b/bsddb3/bsddb3-5.0.0.tar.gz
+rm -rf bsddb3-5.0.0
 tar -xvf bsddb3-5.0.0.tar.gz
 wget http://python.org/ftp/python/2.6.5/Python-2.6.5.tgz
+rm -rf Python-2.6.5
 tar -xzf Python-2.6.5.tgz
 wget http://download.oracle.com/berkeley-db/db-5.0.21.tar.gz
+rm -rf db-5.0.21
 tar -xzf db-5.0.21.tar.gz
 wget http://download.oracle.com/berkeley-db/db-4.8.30.tar.gz
+rm -rf db-4.8.30
 tar -xzf db-4.8.30.tar.gz
 wget http://download.oracle.com/berkeley-db/db-4.7.25.tar.gz
+rm -rf db-4.7.25
 tar -xzf db-4.7.25.tar.gz
 wget http://www.openssl.org/source/openssl-1.0.0.tar.gz
+rm -rf openssl-1.0.0
 tar -xzf openssl-1.0.0.tar.gz
 wget http://www.sqlite.org/sqlite-amalgamation-3.6.23.tar.gz
+rm -rf sqlite-amalgamation-3.6.23
 tar -xzf sqlite-amalgamation-3.6.23.tar.gz
 wget http://mercurial.selenic.com/release/mercurial-1.5.2.tar.gz
+rm -rf mercurial-1.5.2
 tar -xzf mercurial-1.5.2.tar.gz
 wget http://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.4.8.tar.gz
+rm -rf virtualenv-1.4.8
 tar -xzf virtualenv-1.4.8.tar.gz
 wget http://www.doughellmann.com/downloads/virtualenvwrapper-2.1.1.tar.gz
+rm -rf virtualenvwrapper-2.1.1
 tar -xzf virtualenvwrapper-2.1.1.tar.gz
 
 # ##################################################################
@@ -129,45 +137,25 @@ ln -s $HOME/opt/local/lib/libtk8.5.so $HOME/opt/local/lib/libtk8.so
 ln -s $HOME/opt/local/lib/libtk8.5.so $HOME/opt/local/lib/libtk.so
 
 
-# Oracle Berkeley DB 5.0.x for Python 3
-cd db-5.0.21/build_unix
-../dist/configure \
---prefix=$HOME/opt/db-5.0.21 \
---enable-tcl \
---with-tcl=$HOME/opt/local/lib
-make
-make install
-#cp $HOME/opt/db-5.0.21/lib/libdb_tcl-5.0.so $HOME/opt/local/lib
-#cp $HOME/opt/db-5.0.21/lib/libdb-5.0.so $HOME/opt/local/lib
-#rm -f $HOME/opt/local/lib/libdb_tcl-5.so
-#rm -f $HOME/opt/local/lib/libdb_tcl.so
-#rm -f $HOME/opt/local/lib/libdb-5.so
-#rm -f $HOME/opt/local/lib/libdb.so
-#ln -s $HOME/opt/local/lib/libdb_tcl-5.0.so $HOME/opt/local/lib/libdb_tcl-5.so
-#ln -s $HOME/opt/local/lib/libdb_tcl-5.0.so $HOME/opt/local/lib/libdb_tcl.so
-#ln -s $HOME/opt/local/lib/libdb-5.0.so $HOME/opt/local/lib/libdb-5.so
-#ln -s $HOME/opt/local/lib/libdb-5.0.so $HOME/opt/local/lib/libdb.so
-cd ../..
-
-# Oracle Berkeley DB 4.8.x fro Python 2.7.x
-cd db-4.8.30/build_unix
-../dist/configure \
---prefix=$HOME/opt/db-4.8.30 \
---enable-tcl \
---with-tcl=$HOME/opt/local/lib
-make
-make install
-#cp $HOME/opt/db-4.8.30/lib/libdb_tcl-4.8.so $HOME/opt/local/lib
-#cp $HOME/opt/db-4.8.30/lib/libdb-4.8.so $HOME/opt/local/lib
-#rm -f $HOME/opt/local/lib/libdb_tcl-4.so
-#rm -f $HOME/opt/local/lib/libdb_tcl.so
-#rm -f $HOME/opt/local/lib/libdb-4.so
-#rm -f $HOME/opt/local/lib/libdb.so
-#ln -s $HOME/opt/local/lib/libdb_tcl-4.8.so $HOME/opt/local/lib/libdb_tcl-4.so
-#ln -s $HOME/opt/local/lib/libdb_tcl-4.8.so $HOME/opt/local/lib/libdb_tcl.so
-#ln -s $HOME/opt/local/lib/libdb-4.8.so $HOME/opt/local/lib/libdb-4.so
-#ln -s $HOME/opt/local/lib/libdb-4.8.so $HOME/opt/local/lib/libdb.so
-cd ../..
+## Oracle Berkeley DB 5.0.x for Python 3
+#cd db-5.0.21/build_unix
+#../dist/configure \
+#--prefix=$HOME/opt/db-5.0.21 \
+#--enable-tcl \
+#--with-tcl=$HOME/opt/local/lib
+#make
+#make install
+#cd ../..
+#
+## Oracle Berkeley DB 4.8.x fro Python 2.7.x
+#cd db-4.8.30/build_unix
+#../dist/configure \
+#--prefix=$HOME/opt/db-4.8.30 \
+#--enable-tcl \
+#--with-tcl=$HOME/opt/local/lib
+#make
+#make install
+#cd ../..
 
 # Oracle Berkeley DB 4.7.x fro Python 2.6.x
 cd db-4.7.25/build_unix
@@ -177,16 +165,6 @@ cd db-4.7.25/build_unix
 --with-tcl=$HOME/opt/local/lib
 make
 make install
-cp $HOME/opt/db-4.7.25/lib/libdb_tcl-4.7.so $HOME/opt/local/lib
-cp $HOME/opt/db-4.7.25/lib/libdb-4.7.so $HOME/opt/local/lib
-rm -f $HOME/opt/local/lib/libdb_tcl-4.so
-rm -f $HOME/opt/local/lib/libdb_tcl.so
-rm -f $HOME/opt/local/lib/libdb-4.so
-rm -f $HOME/opt/local/lib/libdb.so
-ln -s $HOME/opt/local/lib/libdb_tcl-4.7.so $HOME/opt/local/lib/libdb_tcl-4.so
-ln -s $HOME/opt/local/lib/libdb_tcl-4.7.so $HOME/opt/local/lib/libdb_tcl.so
-ln -s $HOME/opt/local/lib/libdb-4.7.so $HOME/opt/local/lib/libdb-4.so
-ln -s $HOME/opt/local/lib/libdb-4.7.so $HOME/opt/local/lib/libdb.so
 cd ../..
 
 # Bzip (required by hgweb)
@@ -223,7 +201,9 @@ python virtualenv.py $HOME/opt/local
 easy_install virtualenv
 cd ..
 
-cp virtualenvwrapper-2.1.1/virtualenvwrapper.sh ~/opt/
+cd virtualenvwrapper-2.1.1
+python setup.py install
+cp virtualenvwrapper.sh $HOME/opt/
 
 cd ~
 mkdir $HOME/.virtualenvs
