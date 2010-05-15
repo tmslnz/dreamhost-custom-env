@@ -1,3 +1,23 @@
+# Update your .bashrc with the following before running the script:
+#   
+#   export PATH=\
+#   $HOME/opt/local/bin:\
+#   $HOME/opt/Python-2.6.5/bin:\
+#   $HOME/opt/db-4.7.25/bin:\
+#   $PATH
+#   # For other Berkeley DB versions use this on the above PATH:
+#   # $HOME/opt/db-5.0.21/bin:\
+#   # $HOME/opt/db-4.8.30/bin:\
+#   
+#   export PYTHONPATH=\
+#   $HOME/opt/local/lib/python2.6/site-packages:\
+#   $PYTHONPATH
+#   
+# Add this to the .bashrc file after the script has finished
+#   # Virtualenv wrapper script
+#   export WORKON_HOME=$HOME/.virtualenvs
+#   source $HOME/opt/virtualenvwrapper.sh
+
 # ##################
 # Directory mangling
 ####################
@@ -190,32 +210,10 @@ make
 make install
 cd ..
 
-# Append to .bashrc
-echo -e "\n\n\n\n\
-##############################################################\n\
-# The following lines were aded by the script at:\n\
-# http://bitbucket.org/tmslnz/python-dreamhost-batch/src\n\
-##############################################################\n\n\
-export PATH=\\ \n\
-\$HOME/opt/local/bin:\\ \n\
-\$HOME/opt/Python-2.6.5/bin:\\ \n\
-\$HOME/opt/db-4.7.25/bin:\\ \n\
-\$PATH\n\n\
-" >> ~/.bashrc
-source ~/.bashrc
-
 # And finally... Mercurial
 cd mercurial-1.5.2
 make install PREFIX=$HOME/opt/local
 cd ..
-
-# Append to .bashrc
-echo -e "\
-export PYTHONPATH=\\ \n\
-\$HOME/opt/local/lib/python2.6/site-packages:\\ \n\
-\$PYTHONPATH\n\n
-" >> ~/.bashrc
-source ~/.bashrc
 
 # And VirtualEnv
 cd virtualenv-1.4.8
@@ -228,13 +226,6 @@ cd ..
 cd virtualenvwrapper-2.1.1
 python setup.py install
 cp virtualenvwrapper.sh $HOME/opt/
-
-cd ~
 mkdir $HOME/.virtualenvs
 
-# Append to .bashrc
-echo -e "\
-export WORKON_HOME=\$HOME/.virtualenvs\n\
-source \$HOME/opt/virtualenvwrapper.sh\n\
-" >> ~/.bashrc
-source ~/.bashrc
+cd ~
