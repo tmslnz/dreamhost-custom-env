@@ -10,7 +10,6 @@ mkdir --parents --mode=775 --verbose opt/local/lib
 #####################
 # Refresh .bashrc
 #####################
-
 source ~/.bashrc
 
 # ###################
@@ -184,16 +183,41 @@ make
 make install
 cd ..
 
+# Python
 cd Python-2.6.5
 ./configure --prefix=$HOME/opt/Python-2.6.5
 make
 make install
 cd ..
 
+# Append to .bashrc
+echo -e "\n\n\n\n\
+##############################################################\n\
+# The following lines were aded by the script at:\n\
+# http://bitbucket.org/tmslnz/python-dreamhost-batch/src\n\
+##############################################################\n\n\
+export PATH=\\ \n\
+\$HOME/opt/local/bin:\\ \n\
+\$HOME/opt/Python-2.6.5/bin:\\ \n\
+\$HOME/opt/db-4.7.25/bin:\\ \n\
+\$PATH\n\n\
+" >> ~/.bashrc
+source ~/.bashrc
+
+# And finally... Mercurial
 cd mercurial-1.5.2
 make install PREFIX=$HOME/opt/local
 cd ..
 
+# Append to .bashrc
+echo -e "\
+export PYTHONPATH=\\ \n\
+\$HOME/opt/local/lib/python2.6/site-packages:\\ \n\
+\$PYTHONPATH\n\n
+" >> ~/.bashrc
+source ~/.bashrc
+
+# And VirtualEnv
 cd virtualenv-1.4.8
 # May need to use 'python2.5' instead of 'python' here
 # as the script may require a *system* installation of python
@@ -207,3 +231,10 @@ cp virtualenvwrapper.sh $HOME/opt/
 
 cd ~
 mkdir $HOME/.virtualenvs
+
+# Append to .bashrc
+echo -e "\
+export WORKON_HOME=$HOME/.virtualenvs\n\
+source $HOME/opt/virtualenvwrapper.sh\n\
+" >> ~/.bashrc
+source ~/.bashrc
