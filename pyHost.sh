@@ -296,7 +296,7 @@ function ph_virtualenv {
     cat >> ~/.bashrc <<DELIM
 # Virtualenv wrapper script
 export WORKON_HOME=\$HOME/.virtualenvs
-source \$HOME/$pH_install/VirtualEnvWrapper.sh
+source \$HOME/$pH_install/virtualenvwrapper.sh
 DELIM
     source ~/.bashrc
 }
