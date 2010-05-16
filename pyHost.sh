@@ -1,8 +1,10 @@
 #!/bin/bash
 # =================================================
+# = pyHost version 1.1
+# = 
 # = Created by Tommaso Lanza, under the influence
 # = of the guide published by Andrew Watts at:
-# = http://andrew.io/weblog/2010/02/installing-python-2-6-virtualenv-and-virtualenvwrapper-on-dreamhost/
+# = http://andrew.io/weblog/2010/02/installing-python-2-6-virtualenv-and-VirtualEnvWrapper-on-dreamhost/
 # =
 # = This script automates the installation, download and
 # = compiling of Python, Mercurial, VirtualEnv in the home folder.
@@ -13,34 +15,62 @@
 # = tmslnz, May 2010
 # =================================================
 
-# Update your .bashrc with the following before running the script:
-#   
-#   export PATH=\
-#   $HOME/opt/local/bin:\
-#   $HOME/opt/Python-2.6.5/bin:\
-#   $HOME/opt/db-4.7.25/bin:\
-#   $PATH
-#   # For other Berkeley DB versions use this on the above PATH:
-#   # $HOME/opt/db-5.0.21/bin:\
-#   # $HOME/opt/db-4.8.30/bin:\
-#   
-#   export PYTHONPATH=\
-#   $HOME/opt/local/lib/python2.6/site-packages:\
-#   $PYTHONPATH
-#   
-# Add this to the .bashrc file after the script has finished
-#   # Virtualenv wrapper script
-#   export WORKON_HOME=$HOME/.virtualenvs
-#   source $HOME/opt/virtualenvwrapper.sh
-
 # ##################
 # Directory mangling
 ####################
+# First, set your variables here in case you
+# want different versions or directories:
+
+# Directory to store the source archives
+pH_DL=downloads
+
+# Directory to install these packages
+pH_install=opt
+
+# Package versions
+#
+# Comment out anything you don't want to install...
+# ...if you are really sure you already have all 
+# necessary libraries installed already.
+
+pH_Python=2.6.5
+pH_Mercurial=1.5.2
+pH_Git=1.7.1
+pH_Django=1.1.1
+pH_VirtualEnv=1.4.8
+pH_VirtualEnvWrapper=2.1.1
+PH_SSL=1.0.0
+pH_Readline=6.1
+pH_Tcl=8.5.8
+pH_Tk=8.5.8
+pH_Berkeley_47x=4.7.25
+pH_Berkeley_48x=4.8.30
+pH_Berkeley_50x=5.0.21
+pH_BZip=1.0.5
+pH_SQLite=3.6.23
+pH_cURL=7.20.1
+
+
+
+
+# Sets the correct version of Berkeley DB to use and download
+# by looking at the Python version number
+if [[ ${pH_Python:0:3} == "2.6" ]]; then
+    pH_Berkeley=$pH_Berkeley_47x
+elif [[ ${pH_Python:0:3} == "2.7" ]]; then
+    pH_Berkeley=$pH_Berkeley_48x
+elif [[ ${pH_Python:0:1} == "3" ]]; then
+    pH_Berkeley=$pH_Berkeley_50x
+fi
+
+# Let's see how long it takes to finish. Go!
+start_time=$(date +%s)
+
+# Make a backup copy of the current ~/$pH_install folder by renaming it.
 cd ~
-# Make a backup copy of the current ~/opt folder by renaming it.
-cp --archive opt opt.backup
-mkdir --parents opt downloads
-mkdir --parents --mode=775 --verbose opt/local/lib
+cp --archive $pH_install $pH_install.backup
+mkdir --parents $pH_install $pH_DL
+mkdir --parents --mode=775 --verbose $pH_install/local/lib
 
 #####################
 # Refresh .bashrc
@@ -50,207 +80,302 @@ mkdir --parents --mode=775 --verbose opt/local/lib
 #####################
 source ~/.bashrc
 
+#####################
+# Backup and modify .bashrc
+#####################
+cp .bashrc .bashrc-backup
+cat >> ~/.bashrc <<DELIM
+
+
+######################################################################
+# The following lines were added by the script pyHost.sh from:
+# http://bitbucket.org/tmslnz/python-dreamhost-batch/src/tip/pyHost.sh
+# on $(date -u)
+######################################################################
+export PATH=\$HOME/$pH_install/local/bin:\$HOME/$pH_install/Python-$pH_Python/bin:\$HOME/$pH_install/db-$pH_Berkeley/bin:\$PATH
+
+export PYTHONPATH=\$HOME/$pH_install/local/lib/python${pH_Python:0:3}/site-packages:\$PYTHONPATH
+
+DELIM
+source ~/.bashrc
+
 # ###################
 # Download and unpack
 #####################
-cd downloads
-wget http://www.bzip.org/1.0.5/bzip2-1.0.5.tar.gz
-rm -rf bzip2-1.0.5
-tar -xzf bzip2-1.0.5.tar.gz
-wget ftp://ftp.gnu.org/gnu/readline/readline-6.1.tar.gz
-rm -rf readline-6.1
-tar -xzf readline-6.1.tar.gz
-wget http://prdownloads.sourceforge.net/tcl/tcl8.5.8-src.tar.gz
-rm -rf tcl8.5.8-src
-tar -xzf tcl8.5.8-src.tar.gz
-wget http://prdownloads.sourceforge.net/tcl/tk8.5.8-src.tar.gz
-rm -rf tk8.5.8-src
-tar -xzf tk8.5.8-src.tar.gz
+cd ~/$pH_DL
 wget http://pypi.python.org/packages/source/b/bsddb3/bsddb3-5.0.0.tar.gz
 rm -rf bsddb3-5.0.0
 tar -xvf bsddb3-5.0.0.tar.gz
-wget http://python.org/ftp/python/2.6.5/Python-2.6.5.tgz
-rm -rf Python-2.6.5
-tar -xzf Python-2.6.5.tgz
-wget http://download.oracle.com/berkeley-db/db-5.0.21.tar.gz
-rm -rf db-5.0.21
-tar -xzf db-5.0.21.tar.gz
-wget http://download.oracle.com/berkeley-db/db-4.8.30.tar.gz
-rm -rf db-4.8.30
-tar -xzf db-4.8.30.tar.gz
-wget http://download.oracle.com/berkeley-db/db-4.7.25.tar.gz
-rm -rf db-4.7.25
-tar -xzf db-4.7.25.tar.gz
-wget http://www.openssl.org/source/openssl-1.0.0.tar.gz
-rm -rf openssl-1.0.0
-tar -xzf openssl-1.0.0.tar.gz
-wget http://www.sqlite.org/sqlite-amalgamation-3.6.23.tar.gz
-rm -rf sqlite-amalgamation-3.6.23
-tar -xzf sqlite-amalgamation-3.6.23.tar.gz
-wget http://mercurial.selenic.com/release/mercurial-1.5.2.tar.gz
-rm -rf mercurial-1.5.2
-tar -xzf mercurial-1.5.2.tar.gz
-wget http://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.4.8.tar.gz
-rm -rf virtualenv-1.4.8
-tar -xzf virtualenv-1.4.8.tar.gz
-wget http://www.doughellmann.com/downloads/virtualenvwrapper-2.1.1.tar.gz
-rm -rf virtualenvwrapper-2.1.1
-tar -xzf virtualenvwrapper-2.1.1.tar.gz
-wget http://www.djangoproject.com/download/1.1.1/tarball/
-rm -rf Django-1.1.1
-tar -xzf Django-1.1.1.tar.gz
 
+
+
+
+# GCC
 # ##################################################################
 # Set temporary session paths for and variables for the GCC compiler
 # 
 # Specify the right version of Berkeley DB you want to use, see
 # below for DB install scripts.
 ####################################################################
-
-# GCC
 export LD_LIBRARY_PATH=\
-$HOME/opt/local/lib:\
-$HOME/opt/db-4.7.25/lib:\
+$HOME/$pH_install/local/lib:\
+$HOME/$pH_install/db-$pH_Berkeley/lib:\
 $LD_LIBRARY_PATH
 
 export LD_RUN_PATH=$LD_LIBRARY_PATH
 
 export LDFLAGS="\
--L$HOME/opt/db-4.7.25/lib \
--L$HOME/opt/local/lib"
+-L$HOME/$pH_install/db-$pH_Berkeley/lib \
+-L$HOME/$pH_install/local/lib"
 
 export CPPFLAGS="\
--I$HOME/opt/local/include \
--I$HOME/opt/local/include/openssl \
--I$HOME/opt/db-4.7.25/include \
--I$HOME/opt/local/include/readline"
+-I$HOME/$pH_install/local/include \
+-I$HOME/$pH_install/local/include/openssl \
+-I$HOME/$pH_install/db-$pH_Berkeley/include \
+-I$HOME/$pH_install/local/include/readline"
 
 export CXXFLAGS=$CPPFLAGS
 export CFLAGS=$CPPFLAGS
 
 # Append Berkeley DB to EPREFIX. Used by Python setup.py
-export EPREFIX=$HOME/opt/db-4.7.25/lib:$EPREFIX
+export EPREFIX=$HOME/$pH_install/db-$pH_Berkeley/lib:$EPREFIX
 
-# ###################
-# Compile and Install
-#####################
 
-# OpenSSL (required for haslib)
-cd openssl-1.0.0
-./config --prefix=$HOME/opt/local --openssldir=$HOME/opt/local/openssl shared 
-make
-make install
-cp libcrypto.so.1.0.0 $HOME/opt/local/lib/
-cp libssl.so.1.0.0 $HOME/opt/local/lib/
-cd $HOME/opt/local/lib
-rm -f libcrypto.so
-rm -f libssl.so
-ln -s libcrypto.so.1.0.0 libcrypto.so
-ln -s libssl.so.1.0.0 libssl.so
-cd ~/downloads
+
+
+# ############################
+# Download Compile and Install
+##############################
+
+# OpenSSL (required by haslib)
+function ph_openssl {
+    cd ~/$pH_DL
+    wget http://www.openssl.org/source/openssl-$PH_SSL.tar.gz
+    rm -rf openssl-$PH_SSL
+    tar -xzf openssl-$PH_SSL.tar.gz
+    cd openssl-$PH_SSL
+    ./config --prefix=$HOME/$pH_install/local --openssldir=$HOME/$pH_install/local/openssl shared 
+    make
+    make install
+    cp libcrypto.so.$PH_SSL $HOME/$pH_install/local/lib/
+    cp libssl.so.$PH_SSL $HOME/$pH_install/local/lib/
+    cd $HOME/$pH_install/local/lib
+    rm -f libcrypto.so
+    rm -f libssl.so
+    ln -s libcrypto.so.$PH_SSL libcrypto.so
+    ln -s libssl.so.$PH_SSL libssl.so
+}
 
 # Readline
-cd readline-6.1
-./configure --prefix=$HOME/opt/local
-make
-make install
-cd ..
+function ph_readline {
+    cd ~/$pH_DL
+    wget ftp://ftp.gnu.org/gnu/readline/readline-$pH_Readline.tar.gz
+    rm -rf readline-$pH_Readline
+    tar -xzf readline-$pH_Readline.tar.gz
+    cd readline-$pH_Readline
+    ./configure --prefix=$HOME/$pH_install/local
+    make
+    make install
+}
 
 # Tcl/Tk
-cd tcl8.5.8/unix
-./configure --prefix=$HOME/opt/local
-make
-make install
-cd ../..
-cd tk8.5.8/unix
-./configure --prefix=$HOME/opt/local
-make
-make install
-cd ../..
-rm -f $HOME/opt/local/lib/libtcl8.so
-rm -f $HOME/opt/local/lib/libtcl.so
-rm -f $HOME/opt/local/lib/libtk8.so
-rm -f $HOME/opt/local/lib/libtk.so
-ln -s $HOME/opt/local/lib/libtcl8.5.so $HOME/opt/local/lib/libtcl8.so
-ln -s $HOME/opt/local/lib/libtcl8.5.so $HOME/opt/local/lib/libtcl.so
-ln -s $HOME/opt/local/lib/libtk8.5.so $HOME/opt/local/lib/libtk8.so
-ln -s $HOME/opt/local/lib/libtk8.5.so $HOME/opt/local/lib/libtk.so
+function ph_tcltk {
+    cd ~/$pH_DL
+    wget http://prdownloads.sourceforge.net/tcl/tcl$pH_Tcl-src.tar.gz
+    rm -rf tcl$pH_Tcl-src
+    tar -xzf tcl$pH_Tcl-src.tar.gz
+    wget http://prdownloads.sourceforge.net/tcl/tk$pH_Tk-src.tar.gz
+    rm -rf tk$pH_Tk-src
+    tar -xzf tk$pH_Tk-src.tar.gz
+    cd tcl$pH_Tcl/unix
+    ./configure --prefix=$HOME/$pH_install/local
+    make
+    make install
+    cd ../..
+    cd tk$pH_Tk/unix
+    ./configure --prefix=$HOME/$pH_install/local
+    make
+    make install
+    cd ../..
+    rm -f $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:1}.so
+    rm -f $HOME/$pH_install/local/lib/libtcl.so
+    rm -f $HOME/$pH_install/local/lib/libtk${pH_Tk:0:1}.so
+    rm -f $HOME/$pH_install/local/lib/libtk.so
+    ln -s $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:3}.so $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:1}.so
+    ln -s $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:3}.so $HOME/$pH_install/local/lib/libtcl.so
+    ln -s $HOME/$pH_install/local/lib/libtk${pH_Tk:0:3}.so $HOME/$pH_install/local/lib/libtk${pH_Tk:0:1}.so
+    ln -s $HOME/$pH_install/local/lib/libtk${pH_Tk:0:3}.so $HOME/$pH_install/local/lib/libtk.so
+}
 
-
-## Oracle Berkeley DB 5.0.x for Python 3
-#cd db-5.0.21/build_unix
-#../dist/configure \
-#--prefix=$HOME/opt/db-5.0.21 \
-#--enable-tcl \
-#--with-tcl=$HOME/opt/local/lib
-#make
-#make install
-#cd ../..
-#
-## Oracle Berkeley DB 4.8.x for Python 2.7.x
-#cd db-4.8.30/build_unix
-#../dist/configure \
-#--prefix=$HOME/opt/db-4.8.30 \
-#--enable-tcl \
-#--with-tcl=$HOME/opt/local/lib
-#make
-#make install
-#cd ../..
-
-# Oracle Berkeley DB 4.7.x for Python 2.6.x
-cd db-4.7.25/build_unix
-../dist/configure \
---prefix=$HOME/opt/db-4.7.25 \
---enable-tcl \
---with-tcl=$HOME/opt/local/lib
-make
-make install
-cd ../..
+# Oracle Berkeley DB
+function ph_berkeley {
+    cd ~/$pH_DL
+    wget http://download.oracle.com/berkeley-db/db-$pH_Berkeley.tar.gz
+    rm -rf db-$pH_Berkeley
+    tar -xzf db-$pH_Berkeley.tar.gz
+    cd db-$pH_Berkeley/build_unix
+    ../dist/configure \
+    --prefix=$HOME/$pH_install/db-$pH_Berkeley \
+    --enable-tcl \
+    --with-tcl=$HOME/$pH_install/local/lib
+    make
+    make install
+}
 
 # Bzip (required by hgweb)
-cd bzip2-1.0.5
-make -f Makefile-libbz2_so
-make
-make install PREFIX=$HOME/opt/local
-cp libbz2.so.1.0.4 $HOME/opt/local/lib
-rm -f $HOME/opt/local/lib/libbz2.so.1.0
-ln -s $HOME/opt/local/lib/libbz2.so.1.0.4 $HOME/opt/local/lib/libbz2.so.1.0
-cd ..
+function ph_bzip {
+    cd ~/$pH_DL
+    wget http://www.bzip.org/$pH_BZip/bzip2-$pH_BZip.tar.gz
+    rm -rf bzip2-$pH_BZip
+    tar -xzf bzip2-$pH_BZip.tar.gz
+    cd bzip2-$pH_BZip
+    make -f Makefile-libbz2_so
+    make
+    make install PREFIX=$HOME/$pH_install/local
+    cp libbz2.so.${pH_BZip:0:3}.4 $HOME/$pH_install/local/lib
+    rm -f $HOME/$pH_install/local/lib/libbz2.so.${pH_BZip:0:3}
+    ln -s $HOME/$pH_install/local/lib/libbz2.so.${pH_BZip:0:3}.4 $HOME/$pH_install/local/lib/libbz2.so.${pH_BZip:0:3}
+}
 
 # SQLite
-cd sqlite-3.6.23
-./configure --prefix=$HOME/opt/local
-make
-make install
-cd ..
+function ph_sqlite {
+    cd ~/$pH_DL
+    wget http://www.sqlite.org/sqlite-amalgamation-$pH_SQLite.tar.gz
+    rm -rf sqlite-amalgamation-$pH_SQLite
+    tar -xzf sqlite-amalgamation-$pH_SQLite.tar.gz
+    cd sqlite-$pH_SQLite
+    ./configure --prefix=$HOME/$pH_install/local
+    make
+    make install
+}
 
 # Python
-cd Python-2.6.5
-./configure --prefix=$HOME/opt/Python-2.6.5
-make
-make install
-cd ..
+function ph_python {
+    cd ~/$pH_DL
+    wget http://python.org/ftp/python/$pH_Python/Python-$pH_Python.tgz
+    rm -rf Python-$pH_Python
+    tar -xzf Python-$pH_Python.tgz
+    cd Python-$pH_Python
+    ./configure --prefix=$HOME/$pH_install/Python-$pH_Python
+    make
+    make install
+}
 
-# And finally... Mercurial
-cd mercurial-1.5.2
-make install PREFIX=$HOME/opt/local
-cd ..
+# Mercurial
+function ph_mercurial {
+    cd ~/$pH_DL
+    wget http://mercurial.selenic.com/release/mercurial-$pH_Mercurial.tar.gz
+    rm -rf mercurial-$pH_Mercurial
+    tar -xzf mercurial-$pH_Mercurial.tar.gz
+    cd mercurial-$pH_Mercurial
+    make install PREFIX=$HOME/$pH_install/local
+}
 
-# And VirtualEnv
-cd virtualenv-1.4.8
-# May need to use 'python2.5' instead of 'python' here
-# as the script may require a *system* installation of python
-python virtualenv.py $HOME/opt/local
-easy_install virtualenv
-cd ..
+# VirtualEnv
+function ph_virtualenv {
+    cd ~/$pH_DL
+    wget http://pypi.python.org/packages/source/v/virtualenv/virtualenv-$pH_VirtualEnv.tar.gz
+    rm -rf virtualenv-$pH_VirtualEnv
+    tar -xzf virtualenv-$pH_VirtualEnv.tar.gz
+    cd virtualenv-$pH_VirtualEnv
+    # May need to use 'python2.5' instead of 'python' here
+    # as the script may require a *system* installation of python
+    python virtualenv.py $HOME/$pH_install/local
+    easy_install virtualenv
+    cd ..
 
-cd virtualenvwrapper-2.1.1
-python setup.py install
-cp virtualenvwrapper.sh $HOME/opt/
-mkdir $HOME/.virtualenvs
-cd ..
+    wget http://www.doughellmann.com/downloads/virtualenvwrapper-$pH_VirtualEnvWrapper.tar.gz
+    rm -rf virtualenvwrapper-$pH_VirtualEnvWrapper
+    tar -xzf virtualenvwrapper-$pH_VirtualEnvWrapper.tar.gz
+    cd virtualenvwrapper-$pH_VirtualEnvWrapper
+    python setup.py install
+    cp virtualenvwrapper.sh $HOME/$pH_install/
+    mkdir $HOME/.virtualenvs
 
-cd Django-1.1.1
-python setup.py install
+    # Virtualenv to .bashrc
+    cat >> ~/.bashrc <<DELIM
+# Virtualenv wrapper script
+export WORKON_HOME=\$HOME/.virtualenvs
+source \$HOME/$pH_install/VirtualEnvWrapper.sh
+DELIM
+    source ~/.bashrc
+}
+
+# Django framework
+function ph_django {
+    cd ~/$pH_DL
+    cd $HOME/$pH_DL
+    wget http://www.djangoproject.com/download/$pH_Django/tarball/
+    rm -rf Django-$pH_Django
+    tar -xzf Django-$pH_Django.tar.gz
+    cd Django-$pH_Django
+    python setup.py install
+}
+
+# cURL (for Git to pull remote repos)
+function ph_curl {
+    cd ~/$pH_DL
+    wget http://curl.haxx.se/download/curl-$pH_cURL.tar.gz
+    rm -rf curl-$pH_cURL
+    tar -xzf curl-$pH_cURL.tar.gz
+    cd curl-$pH_cURL
+    ./configure --prefix=$HOME/$pH_install/local
+    make
+    make install
+}
+
+# Git
+# NO_MMAP is needed to prevent Dreamhost killing git processes
+function ph_git {
+    cd ~/$pH_DL
+    wget http://kernel.org/pub/software/scm/git/git-$pH_Git.tar.gz
+    rm -rf git-$pH_Git
+    tar -xzf git-$pH_Git.tar.gz
+    cd git-$pH_Git
+    ./configure --prefix=$HOME/$pH_install/local NO_MMAP=1
+    make
+    make install
+}
+
+# Go!
+if test "${PH_SSL+set}" == set ; then
+    ph_openssl
+fi
+if test "${pH_Readline+set}" == set ; then
+    ph_readline
+fi
+if test "${pH_Tcl+set}" == set ; then
+    ph_tcltk
+fi
+if test "${pH_Berkeley+set}" == set ; then
+    ph_berkeley
+fi
+if test "${pH_BZip+set}" == set ; then
+    ph_bzip
+fi
+if test "${pH_SQLite+set}" == set ; then
+    ph_sqlite
+fi
+if test "${pH_Python+set}" == set ; then
+    ph_python
+fi
+if test "${pH_Mercurial+set}" == set ; then
+    ph_mercurial
+fi
+if test "${pH_VirtualEnv+set}" == set ; then
+    ph_virtualenv
+fi
+if test "${pH_Django+set}" == set ; then
+    ph_django
+fi
+if test "${pH_cURL+set}" == set ; then
+    ph_curl
+fi
+if test "${pH_Git+set}" == set ; then
+    ph_git
+fi
+
 
 cd ~
+finish_time=$(date +%s)
+echo "pyHost.sh completed the installation in $((finish_time - start_time)) seconds."
