@@ -38,8 +38,8 @@
 ####################
 cd ~
 # Make a backup copy of the current ~/opt folder by renaming it.
-mv --interactive opt opt.backup
-mkdir opt downloads
+cp --archive opt opt.backup
+mkdir --parents opt downloads
 mkdir --parents --mode=775 --verbose opt/local/lib
 
 #####################
