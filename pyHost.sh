@@ -13,7 +13,27 @@
 # = It should work with other hosts, but it hasn't been tested.
 # = 
 # = tmslnz, May 2010
+# =
+# = TO DO
+# = - Make installers silent and log errors and 
+# =   warnings to a single file
+# = - Capture exit codes and print errors
+# = - Test validity of urls passed to wget
+# = - Make sure EPREFIX is set only when needed by
+# =   Python and then set to its original value
 # =================================================
+
+
+
+#####################
+# Refresh .bashrc
+#
+# Let's make sure the variables are 
+# updated in case you didn't log out.
+#####################
+source ~/.bashrc
+
+
 
 # ##################
 # Directory mangling
@@ -27,10 +47,12 @@ pH_DL=downloads
 # Directory to install these packages
 pH_install=opt
 
+# Ruby Gems dir with prefix ~/
+pH_Gem=.gem
 # Package versions
 #
 # Comment out anything you don't want to install...
-# ...if you are really sure you already have all 
+# ...if you are really sure you have all 
 # necessary libraries installed already.
 
 pH_Python=2.6.5
@@ -49,7 +71,9 @@ pH_Berkeley_50x=5.0.21
 pH_BZip=1.0.5
 pH_SQLite=3.6.23
 pH_cURL=7.20.1
-
+pH_Dulwich=0.5.0
+pH_bsddb=5.0.0
+pH_Less=1.3.0
 
 
 
@@ -63,26 +87,16 @@ elif [[ ${pH_Python:0:1} == "3" ]]; then
     pH_Berkeley=$pH_Berkeley_50x
 fi
 
-# Let's see how long it takes to finish. Go!
+# Let's see how long it takes to finish.
 start_time=$(date +%s)
 
-# Make a backup copy of the current ~/$pH_install folder by renaming it.
+# Make a backup copy of the current ~/$pH_install folder if it exists.
 cd ~
 cp --archive $pH_install $pH_install.backup
 mkdir --parents $pH_install $pH_DL
 mkdir --parents --mode=775 --verbose $pH_install/local/lib
 
-#####################
-# Refresh .bashrc
-#
-# Let's make sure the variables are 
-# updated in case you didn't log out.
-#####################
-source ~/.bashrc
-
-#####################
 # Backup and modify .bashrc
-#####################
 cp .bashrc .bashrc-backup
 cat >> ~/.bashrc <<DELIM
 
@@ -92,8 +106,8 @@ cat >> ~/.bashrc <<DELIM
 # http://bitbucket.org/tmslnz/python-dreamhost-batch/src/tip/pyHost.sh
 # on $(date -u)
 ######################################################################
-export PATH=\$HOME/$pH_install/local/bin:\$HOME/$pH_install/Python-$pH_Python/bin:\$HOME/$pH_install/db-$pH_Berkeley/bin:\$PATH
 
+export PATH=\$HOME/$pH_install/local/bin:\$HOME/$pH_install/Python-$pH_Python/bin:\$HOME/$pH_install/db-$pH_Berkeley/bin:\$PATH
 export PYTHONPATH=\$HOME/$pH_install/local/lib/python${pH_Python:0:3}/site-packages:\$PYTHONPATH
 
 DELIM
@@ -102,13 +116,6 @@ source ~/.bashrc
 # ###################
 # Download and unpack
 #####################
-cd ~/$pH_DL
-wget http://pypi.python.org/packages/source/b/bsddb3/bsddb3-5.0.0.tar.gz
-rm -rf bsddb3-5.0.0
-tar -xvf bsddb3-5.0.0.tar.gz
-
-
-
 
 # GCC
 # ##################################################################
@@ -137,9 +144,6 @@ export CPPFLAGS="\
 export CXXFLAGS=$CPPFLAGS
 export CFLAGS=$CPPFLAGS
 
-# Append Berkeley DB to EPREFIX. Used by Python setup.py
-export EPREFIX=$HOME/$pH_install/db-$pH_Berkeley/lib:$EPREFIX
-
 
 
 
@@ -155,7 +159,8 @@ function ph_openssl {
     tar -xzf openssl-$PH_SSL.tar.gz
     cd openssl-$PH_SSL
     ./config --prefix=$HOME/$pH_install/local --openssldir=$HOME/$pH_install/local/openssl shared 
-    make
+    echo "Compiling OpenSSL $PH_SSL. Please wait..."
+    make --silent
     make install
     cp libcrypto.so.$PH_SSL $HOME/$pH_install/local/lib/
     cp libssl.so.$PH_SSL $HOME/$pH_install/local/lib/
@@ -164,6 +169,7 @@ function ph_openssl {
     rm -f libssl.so
     ln -s libcrypto.so.$PH_SSL libcrypto.so
     ln -s libssl.so.$PH_SSL libssl.so
+    cd ~/$pH_DL
 }
 
 # Readline
@@ -174,35 +180,44 @@ function ph_readline {
     tar -xzf readline-$pH_Readline.tar.gz
     cd readline-$pH_Readline
     ./configure --prefix=$HOME/$pH_install/local
-    make
+    echo "Compiling Readline $pH_Readline. Please wait..."
+    make --silent
     make install
+    cd ~/$pH_DL
 }
 
-# Tcl/Tk
-function ph_tcltk {
+# Tcl
+function ph_tcl {
     cd ~/$pH_DL
     wget http://prdownloads.sourceforge.net/tcl/tcl$pH_Tcl-src.tar.gz
     rm -rf tcl$pH_Tcl-src
     tar -xzf tcl$pH_Tcl-src.tar.gz
+    cd tcl$pH_Tcl/unix
+    ./configure --prefix=$HOME/$pH_install/local
+    echo "Compiling Tcl $pH_Tcl. Please wait..."
+    make --silent
+    make install
+    cd ~/$pH_DL
+    rm -f $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:1}.so
+    rm -f $HOME/$pH_install/local/lib/libtcl.so
+    ln -s $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:3}.so $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:1}.so
+    ln -s $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:3}.so $HOME/$pH_install/local/lib/libtcl.so
+}
+
+# Tk (WTF?!)
+function ph_tk {
+    cd ~/$pH_DL
     wget http://prdownloads.sourceforge.net/tcl/tk$pH_Tk-src.tar.gz
     rm -rf tk$pH_Tk-src
     tar -xzf tk$pH_Tk-src.tar.gz
-    cd tcl$pH_Tcl/unix
-    ./configure --prefix=$HOME/$pH_install/local
-    make
-    make install
-    cd ../..
     cd tk$pH_Tk/unix
     ./configure --prefix=$HOME/$pH_install/local
-    make
+    echo "Compiling Tcl $pH_Tk. Please wait..."
+    make --silent
     make install
-    cd ../..
-    rm -f $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:1}.so
-    rm -f $HOME/$pH_install/local/lib/libtcl.so
+    cd ~/$pH_DL
     rm -f $HOME/$pH_install/local/lib/libtk${pH_Tk:0:1}.so
     rm -f $HOME/$pH_install/local/lib/libtk.so
-    ln -s $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:3}.so $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:1}.so
-    ln -s $HOME/$pH_install/local/lib/libtcl${pH_Tcl:0:3}.so $HOME/$pH_install/local/lib/libtcl.so
     ln -s $HOME/$pH_install/local/lib/libtk${pH_Tk:0:3}.so $HOME/$pH_install/local/lib/libtk${pH_Tk:0:1}.so
     ln -s $HOME/$pH_install/local/lib/libtk${pH_Tk:0:3}.so $HOME/$pH_install/local/lib/libtk.so
 }
@@ -218,8 +233,10 @@ function ph_berkeley {
     --prefix=$HOME/$pH_install/db-$pH_Berkeley \
     --enable-tcl \
     --with-tcl=$HOME/$pH_install/local/lib
-    make
+    echo "Compiling Berkeley DB $pH_Berkeley. Please wait..."
+    make --silent
     make install
+    cd ~/$pH_DL
 }
 
 # Bzip (required by hgweb)
@@ -230,11 +247,13 @@ function ph_bzip {
     tar -xzf bzip2-$pH_BZip.tar.gz
     cd bzip2-$pH_BZip
     make -f Makefile-libbz2_so
-    make
+    echo "Compiling Bzip $pH_BZip. Please wait..."
+    make --silent
     make install PREFIX=$HOME/$pH_install/local
     cp libbz2.so.${pH_BZip:0:3}.4 $HOME/$pH_install/local/lib
     rm -f $HOME/$pH_install/local/lib/libbz2.so.${pH_BZip:0:3}
     ln -s $HOME/$pH_install/local/lib/libbz2.so.${pH_BZip:0:3}.4 $HOME/$pH_install/local/lib/libbz2.so.${pH_BZip:0:3}
+    cd ~/$pH_DL
 }
 
 # SQLite
@@ -245,20 +264,36 @@ function ph_sqlite {
     tar -xzf sqlite-amalgamation-$pH_SQLite.tar.gz
     cd sqlite-$pH_SQLite
     ./configure --prefix=$HOME/$pH_install/local
-    make
+    echo "Compiling SQLite $pH_SQLite. Please wait..."
+    make --silent
     make install
+    cd ~/$pH_DL
+}
+
+# bsddb
+function ph_bsddb {
+    cd ~/$pH_DL
+    wget http://pypi.python.org/packages/source/b/bsddb3/bsddb3-5.0.0.tar.gz
+    rm -rf bsddb3-5.0.0
+    tar -xvf bsddb3-5.0.0.tar.gz
 }
 
 # Python
 function ph_python {
+    # Append Berkeley DB to EPREFIX. Used by Python setup.py
+    export EPREFIX=$HOME/$pH_install/db-$pH_Berkeley/lib:$EPREFIX
     cd ~/$pH_DL
     wget http://python.org/ftp/python/$pH_Python/Python-$pH_Python.tgz
     rm -rf Python-$pH_Python
     tar -xzf Python-$pH_Python.tgz
     cd Python-$pH_Python
     ./configure --prefix=$HOME/$pH_install/Python-$pH_Python
-    make
+    echo "Compiling Python $pH_Python. Please wait..."
+    make --silent
     make install
+    # Unset EPREFIX. Used by Python setup.py
+    export EPREFIX=
+    cd ~/$pH_DL
 }
 
 # Mercurial
@@ -269,6 +304,40 @@ function ph_mercurial {
     tar -xzf mercurial-$pH_Mercurial.tar.gz
     cd mercurial-$pH_Mercurial
     make install PREFIX=$HOME/$pH_install/local
+    cd ~/$pH_DL
+    cat >> ~/.hgrc <<DELIM
+
+# Added by pyHost.sh from:
+# http://bitbucket.org/tmslnz/python-dreamhost-batch/src/tip/pyHost.sh
+# on $(date -u)
+[ui]
+editor = nano
+ssh = ssh -C
+
+[extensions]
+rebase =
+color =
+bookmarks =
+convert=
+# nullifies Dreamhost's shitty system-wide .hgrc
+hgext.imerge = !
+
+[color]
+status.modified = magenta bold
+status.added = green bold
+status.removed = red bold
+status.deleted = cyan bold
+status.unknown = blue bold
+status.ignored = black bold
+
+[hooks]
+# Prevent "hg pull" if MQ patches are applied.
+prechangegroup.mq-no-pull = ! hg qtop > /dev/null 2>&1
+# Prevent "hg push" if MQ patches are applied.
+preoutgoing.mq-no-push = ! hg qtop > /dev/null 2>&1
+# End added by pyHost.sh
+
+DELIM
 }
 
 # VirtualEnv
@@ -291,7 +360,8 @@ function ph_virtualenv {
     python setup.py install
     cp virtualenvwrapper.sh $HOME/$pH_install/
     mkdir $HOME/.virtualenvs
-
+    cd ~/$pH_DL
+    
     # Virtualenv to .bashrc
     cat >> ~/.bashrc <<DELIM
 # Virtualenv wrapper script
@@ -310,6 +380,7 @@ function ph_django {
     tar -xzf Django-$pH_Django.tar.gz
     cd Django-$pH_Django
     python setup.py install
+    cd ~/$pH_DL
 }
 
 # cURL (for Git to pull remote repos)
@@ -320,8 +391,10 @@ function ph_curl {
     tar -xzf curl-$pH_cURL.tar.gz
     cd curl-$pH_cURL
     ./configure --prefix=$HOME/$pH_install/local
-    make
+    echo "Compiling cURL $pH_cURL. Please wait..."
+    make --silent
     make install
+    cd ~/$pH_DL
 }
 
 # Git
@@ -333,8 +406,71 @@ function ph_git {
     tar -xzf git-$pH_Git.tar.gz
     cd git-$pH_Git
     ./configure --prefix=$HOME/$pH_install/local NO_MMAP=1
+    echo "Compiling Git $pH_Git. Please wait..."
     make
     make install
+    cd ~/$pH_DL
+}
+
+# Dulwich
+function ph_dulwich {
+    cd ~/$pH_DL
+    wget http://samba.org/~jelmer/dulwich/dulwich-$pH_Dulwich.tar.gz
+    rm -rf dulwich-$pH_Dulwich
+    tar -xzf dulwich-$pH_Dulwich.tar.gz
+    cd dulwich-$pH_Dulwich
+    python setup.py install
+    cd ~/$pH_DL
+}
+
+# Hg-Git
+function ph_hggit {
+    cd ~/$pH_DL
+    mkdir hg-git
+    cd hg-git
+    wget http://github.com/schacon/hg-git/tarball/master
+    tar -xzf *
+    hg_git_dir=$(ls -dC */)
+    cd $hg_git_dir
+    python setup.py install
+    cd ~/$pH_DL
+    # Virtualenv to .bashrc
+    cat >> ~/.hgrc <<DELIM
+    
+# Added by pyHost.sh from:
+# http://bitbucket.org/tmslnz/python-dreamhost-batch/src/tip/pyHost.sh
+# on $(date -u)
+[extensions]
+hggit =
+# End added by pyHost.sh
+
+DELIM
+}
+
+# Less CSS compiler
+function ph_lesscss {
+    cat >> ~/.bashrc <<DELIM
+
+# Added by pyHost.sh from:
+# http://bitbucket.org/tmslnz/python-dreamhost-batch/src/tip/pyHost.sh
+# on $(date -u)
+
+export PATH="\$PATH:\$HOME/$pH_Gem/bin"
+export GEM_HOME=\$HOME/$pH_Gem
+GEM_PATH="\$GEM_HOME"
+
+# End added by pyHost.sh
+
+DELIM
+    source ~/.bashrc
+    mkdir --mode=775 ~/.gem
+    cd ~/$pH_DL
+    mkdir less-css
+    cd less-css
+    wget http://github.com/downloads/rc1/less/less-1.3.0-escapist.gem.zip
+    unzip less-1.3.0-escapist.gem.zip
+    gem install less-1.3.0.gem
+    cd ~/$pH_DL
 }
 
 # Go!
@@ -345,7 +481,10 @@ if test "${pH_Readline+set}" == set ; then
     ph_readline
 fi
 if test "${pH_Tcl+set}" == set ; then
-    ph_tcltk
+    ph_tcl
+fi
+if test "${pH_Tk+set}" == set ; then
+    ph_tk
 fi
 if test "${pH_Berkeley+set}" == set ; then
     ph_berkeley
@@ -355,6 +494,9 @@ if test "${pH_BZip+set}" == set ; then
 fi
 if test "${pH_SQLite+set}" == set ; then
     ph_sqlite
+fi
+if test "${pH_bsddb+set}" == set ; then
+    ph_bsddb
 fi
 if test "${pH_Python+set}" == set ; then
     ph_python
@@ -374,7 +516,13 @@ fi
 if test "${pH_Git+set}" == set ; then
     ph_git
 fi
-
+if test "${pH_Dulwich+set}" == set ; then
+    ph_dulwich
+    ph_hggit
+fi
+if test "${pH_Less+set}" == set ; then
+    ph_lesscss
+fi
 
 cd ~
 finish_time=$(date +%s)
