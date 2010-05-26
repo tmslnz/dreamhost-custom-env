@@ -1,6 +1,6 @@
 #!/bin/bash
 # =================================================
-# = pyHost version 1.4
+# = pyHost version 1.5
 # = 
 # = Created by Tommaso Lanza, under the influence
 # = of the guide published by Andrew Watts at:
